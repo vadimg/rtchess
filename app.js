@@ -75,6 +75,7 @@ function Room(id) {
     this.watchers = [];
     this.gameStarted = false;
     var self = this;
+    this.init();
 
     function removeWatcher() {
         // if it has no one in it, remove the room
@@ -100,6 +101,9 @@ Room.prototype.init = function() {
                   self.broadcast.apply(self, arguments);
               }
     };
+    this.board.on('addPiece', function(id) {
+        console.log('adding', id);
+    });
     common.bindPassThrough(events, broadcast, this.board);
 
     this.board.on('activatePiece', function(id) {
@@ -120,6 +124,7 @@ Room.prototype.init = function() {
 };
 
 Room.prototype.broadcast = function() {
+    console.log('broadcast to #:', this.watchers.length);
     for(var i=0, l = this.watchers.length; i < l; ++i) {
         var socket = this.watchers[i];
         socket.emit.apply(socket, arguments);
@@ -127,6 +132,15 @@ Room.prototype.broadcast = function() {
 };
 
 Room.prototype.setSide = function(side, socket) {
+    for(var i=0, l = SIDES.length; i < l; ++i) {
+        var s = SIDES[i];
+        if(this[s] === socket) {
+            this[s] = null;
+            delete this.starting[s];
+            this.broadcast('sideFree', s);
+            console.log(s, ' disconnected');
+        }
+    }
     this[side] = socket;
     this.broadcast('sideTaken', side);
 };

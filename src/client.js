@@ -15,13 +15,14 @@ window.startRoom = function(room_id) {
         $('#sit-' + side).attr('disabled', 'disabled');
     });
     socket.on('sideFree', function(side) {
+        console.log('sidefree', side);
         $('#sit-' + side).removeAttr('disabled');
     });
     socket.on('gotSide', function(side) {
-        for(var i=0, l=SIDES.length; i < l; ++i)
-            $('#sit-' + SIDES[i]).attr('disabled', 'disabled');
+        $('#sit-' + side).attr('disabled', 'disabled');
         sit(side);
         $('#start-game').removeAttr('disabled');
+        $('#wait-message').remove();
     });
     socket.on('starting', function(secs) {
         $('#wait-message').remove();
@@ -52,6 +53,7 @@ window.startRoom = function(room_id) {
         socket.emit('chooseSide', 'black');
     });
     $('#start-game').click(function() {
+        view.drawBoard(board);
         $('#start-game').attr('disabled', 'disabled');
         socket.emit('startGame');
         $('#chess-board').append('<div class="message" id="wait-message">Waiting for opponent to press start...</div>');
@@ -60,11 +62,11 @@ window.startRoom = function(room_id) {
     var board;
     function sit(side) {
         board = new Board(side[0]);
+        view.unbindEvents(socket);
         view.bindEvents(socket, board);
         view.view.on('moveRequest', function(id, loc) {
             socket.emit('moveRequest', id, loc);
         });
-        view.drawBoard(board);
     }
 
 };
