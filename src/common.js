@@ -12,7 +12,7 @@ var COLORS = {
 };
 
 function letter2color(letter) {
-    return COLORS[letter];
+    return COLORS[letter[0]];
 }
 
 function bindPassThrough(events, to, from) {

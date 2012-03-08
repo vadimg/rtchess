@@ -62,6 +62,12 @@ function drawBoard(board) {
     $cb.click(makeClickBoard(board));
 }
 
+function disableBoard() {
+    var $cb = $('#chess-board');
+    $cb.removeClass('clickable');
+    $('.piece').removeClass('clickable').removeClass('piece-selected');
+}
+
 function makeClickPiece(board) {
     return function(e) {
         return clickPiece(e, board);
@@ -194,8 +200,10 @@ function bindEvents(emitter, board) {
     });
 
     emitter.on('gameOver', function(winner) {
+        var color = common.letter2color(winner);
         var $cb = $('#chess-board');
-        $cb.append('<div class="message">Game over! ' + winner + ' wins!</div>');
+        $cb.append('<div class="message">Game over! ' + color + ' wins!</div>');
+        disableBoard();
     });
 }
 
@@ -204,5 +212,6 @@ var view = new EventEmitter;
 module.exports = {
     drawBoard: drawBoard,
     bindEvents: bindEvents,
-    view: view
+    view: view,
+    disableBoard: disableBoard
 };

@@ -158,7 +158,7 @@ Board.prototype.moved = function(pid, to) {
 
         // if you captured the king, game over
         if(enemy instanceof pieces.King) {
-            this.emit('gameOver', common.letter2color(piece.color));
+            this.emit('gameOver', piece.color);
         }
     }
     this.locs[to] = piece;

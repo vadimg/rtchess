@@ -1,6 +1,7 @@
 (function(){
 
 var view = require('./view');
+var common = require('./common');
 var Board = require('./board');
 
 window.startRoom = function(room_id) {
@@ -36,6 +37,12 @@ window.startRoom = function(room_id) {
             setTimeout(countDown, 1000);
         }
         countDown();
+    });
+
+    socket.on('playerDisconnected', function(color) {
+        var prettyColor = common.letter2color(color);
+        $('#chess-board').append('<div class="message">' + prettyColor + ' was disconnected!</div>');
+        view.disableBoard();
     });
 
     $('#sit-white').click(function() {

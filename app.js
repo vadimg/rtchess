@@ -74,6 +74,7 @@ function Room(id) {
     this.starting= {};
     this.watchers = [];
     this.board = new Board();
+    this.gameStarted = false;
     var events = ['addPiece', 'removePiece', 'movePiece', 'movingPiece', 'immobilePiece', 'immobilePieceTimer', 'mobilePiece', 'gameOver'];
     var self = this;
     var broadcast = {
@@ -131,6 +132,11 @@ Room.prototype.remove = function(socket) {
             this[side] = null;
             delete this.starting[side];
             this.broadcast('sideFree', side);
+            console.log(side, ' disconnected');
+            if(this.gameStarted) {
+                console.log(side, ' really disconnected');
+                this.broadcast('playerDisconnected', side);
+            }
         }
     }
 };
@@ -183,10 +189,10 @@ io.sockets.on('connection', function(socket) {
 
         // start game if everyone has clicked start
         if(_.size(room.starting) === SIDES.length) {
-            console.log('starting game');
             for(var i=0, l = SIDES.length; i < l; ++i) {
                 var side = SIDES[i];
                 setTimeout(function() {
+                    room.gameStarted = true;
                     room.board.startGame();
                 }, 3000);
                 room[side].emit('starting', 3);
