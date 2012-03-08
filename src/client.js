@@ -26,6 +26,7 @@ window.startRoom = function(room_id) {
         $('#wait-message').remove();
     });
     socket.on('starting', function(secs) {
+        view.drawBoard(board);
         $('#wait-message').remove();
         $('#chess-board').append('<div class="message" id="starting-message">Game starting in <span id="starting-secs"></span> seconds</div>');
         secs -= 0; // convert to number
@@ -45,6 +46,7 @@ window.startRoom = function(room_id) {
         var prettyColor = common.letter2color(color);
         $('#chess-board').append('<div class="message" id="disconnect-message">' + prettyColor + ' was disconnected!</div>');
         view.disableBoard();
+        $('#start-game').removeAttr('disabled');
     });
 
     $('#sit-white').click(function() {
@@ -54,7 +56,6 @@ window.startRoom = function(room_id) {
         socket.emit('chooseSide', 'black');
     });
     $('#start-game').click(function() {
-        view.drawBoard(board);
         $('#start-game').attr('disabled', 'disabled');
         socket.emit('startGame');
         $('#chess-board').append('<div class="message" id="wait-message">Waiting for opponent to press start...</div>');
