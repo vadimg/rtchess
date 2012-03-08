@@ -2,25 +2,8 @@ var common = require('./common');
 var config = require('./config');
 var EventEmitter = require('events').EventEmitter;
 
-var PIECES = {};
-
-(function() {
-    var pieces = 'kqrbhp';
-    var charcode = 9812;
-    var colors = 'wb';
-    for(var i=0; i < 2; ++i) {
-        var color = colors[i];
-        for(var j=0, l=pieces.length; j < l; ++j) {
-            var piece = pieces[j];
-            var s = '&#' + charcode + ';';
-            PIECES[color + piece] = s;
-            charcode++;
-        }
-    }
-})();
-
-function pieceChar(piece) {
-    return PIECES[piece.substr(0, 2)];
+function pieceImage(piece) {
+    return '/images/' + piece.substr(0, 2) + '.png';
 }
 
 function drawBoard(board) {
@@ -133,10 +116,10 @@ function makeEvents(board) {
             console.log('adding', id);
             var pos = board.loc2pos(loc);
             var $cb = $('#chess-board');
-            $cb.append('<div class="piece" id="' + id + '"><div class="piece-holder" id="piece-holder-' + id + '">' + pieceChar(id) + '</div></div>');
+            $cb.append('<div class="piece" id="' + id + '"><div class="piece-holder" id="piece-holder-' + id + '"></div></div>');
             $('#piece-holder-' + id).click(function() {
                 $piece.click();
-            });
+            }).css('background', 'url(' + pieceImage(id) + ') no-repeat center');
             var $piece = $('#' + id);
             $piece.css('top', pos.top).css('left', pos.left);
             $piece.click(makeClickPiece(board));
