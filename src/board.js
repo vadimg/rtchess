@@ -219,6 +219,7 @@ Board.prototype.startGame = function() {
 
 Board.prototype.disable = function() {
     this.disabled = true;
+    this.emit('disabled');
 };
 
 module.exports = Board;

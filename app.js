@@ -99,10 +99,12 @@ Room.prototype.init = function() {
                   self.broadcast.apply(self, arguments);
               }
     };
-    this.board.on('addPiece', function(id) {
-        console.log('adding', id);
-    });
     common.bindPassThrough(events, broadcast, this.board);
+
+    this.board.on('gameOver', function() {
+        // no one is starting
+        self.starting = {};
+    });
 
     this.board.on('activatePiece', function(id) {
         for(var i=0, l = SIDES.length; i < l; ++i) {
@@ -117,6 +119,14 @@ Room.prototype.init = function() {
             var side = SIDES[i];
             if(self[side])
                 self[side].emit('activateBoard');
+        }
+    });
+    this.board.on('disabled', function() {
+        console.log('board disable');
+        for(var i=0, l = SIDES.length; i < l; ++i) {
+            var side = SIDES[i];
+            if(self[side])
+                self[side].emit('disabled');
         }
     });
 };

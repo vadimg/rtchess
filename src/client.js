@@ -13,7 +13,6 @@ window.startRoom = function(room_id) {
     });
     socket.on('sideTaken', function(side) {
         $('#sit-' + side).attr('disabled', 'disabled');
-        $('#disconnect-message').remove();
     });
     socket.on('sideFree', function(side) {
         console.log('sidefree', side);
@@ -21,13 +20,13 @@ window.startRoom = function(room_id) {
     });
     socket.on('gotSide', function(side) {
         $('#sit-' + side).attr('disabled', 'disabled');
-        sit(side);
+        mySide = side;
         $('#start-game').removeAttr('disabled');
-        $('#wait-message').remove();
+        $('.message').remove();
     });
     socket.on('starting', function(secs) {
-        view.drawBoard(board);
-        $('#wait-message').remove();
+        start();
+        $('.message').remove();
         $('#chess-board').append('<div class="message" id="starting-message">Game starting in <span id="starting-secs"></span> seconds</div>');
         secs -= 0; // convert to number
         function countDown() {
@@ -44,10 +43,17 @@ window.startRoom = function(room_id) {
 
     socket.on('playerDisconnected', function(color) {
         var prettyColor = common.letter2color(color);
+        $('.message').remove();
         $('#chess-board').append('<div class="message" id="disconnect-message">' + prettyColor + ' was disconnected!</div>');
-        view.disableBoard();
         $('#start-game').removeAttr('disabled');
     });
+    socket.on('gameOver', function(winner) {
+        var color = common.letter2color(winner);
+        var $cb = $('#chess-board');
+        $cb.append('<div class="message">Game over! ' + color + ' wins!</div>');
+        $('#start-game').removeAttr('disabled');
+    });
+
 
     $('#sit-white').click(function() {
         socket.emit('chooseSide', 'white');
@@ -58,17 +64,20 @@ window.startRoom = function(room_id) {
     $('#start-game').click(function() {
         $('#start-game').attr('disabled', 'disabled');
         socket.emit('startGame');
+        $('.message').remove();
         $('#chess-board').append('<div class="message" id="wait-message">Waiting for opponent to press start...</div>');
     });
 
     var board;
-    function sit(side) {
-        board = new Board(side[0]);
+    var mySide;
+    function start() {
+        board = new Board(mySide[0]);
         view.unbindEvents(socket);
         view.bindEvents(socket, board);
         view.view.on('moveRequest', function(id, loc) {
             socket.emit('moveRequest', id, loc);
         });
+        view.drawBoard(board);
     }
 
 };
