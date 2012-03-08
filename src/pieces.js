@@ -136,7 +136,9 @@ Pawn.prototype.moved = function() {
         var loc = this.loc;
         var color = this.color;
         this.board.remove(this.id);
-        this.board.addPiece(color + 'q' + num, loc).activate();
+        var queen = this.board.addPiece(color + 'q' + num, loc);
+        queen.activate();
+        queen.immobilize();
     }
 };
 
