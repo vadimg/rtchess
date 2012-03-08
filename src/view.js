@@ -79,8 +79,10 @@ function clickPiece(e, board) {
     var $piece = $(e.target);
 
     // don't select immovable pieces
-    if(!$piece.hasClass('clickable'))
+    if(!$piece.hasClass('clickable')) {
+        console.log('not clickable');
         return false;
+    }
 
     // don't select enemy pieces
     if($piece.hasClass('piece-enemy')) {
@@ -100,6 +102,7 @@ function clickPiece(e, board) {
     var $cb = $('#chess-board');
     $cb.addClass('clickable');
     $('.piece-enemy').addClass('clickable');
+    $('.piece-enemy > .timer').addClass('clickable');
     return false;
 }
 
@@ -169,9 +172,15 @@ function bindEvents(emitter, board) {
     emitter.on('movePiece', function(id, loc) {
         var $cb = $('#chess-board');
         var $piece = $('#' + id);
-        $cb.removeClass('clickable');
-        $('.piece-enemy').removeClass('clickable');
+
         $piece.removeClass('piece-selected');
+
+        // only remove clickables if no other selected pieces
+        if(!$('.piece-selected').length) {
+            $cb.removeClass('clickable');
+            $('.piece-enemy').removeClass('clickable');
+            $('.timer').removeClass('clickable');
+        }
     });
 
     emitter.on('movingPiece', function(id, from, to, ratio) {
@@ -190,7 +199,20 @@ function bindEvents(emitter, board) {
     emitter.on('immobilePiece', function(id) {
         var tid = id + '-timer';
         var $piece = $('#' + id);
+
         $piece.append('<div class="timer" id="' + tid + '"></div>');
+        $timer = $('#' + tid);
+
+        // make timer clicks propagate to the piece
+        $timer.click(function() {
+            return $piece.click();
+        });
+
+        // make clickable if it's an enemy piece and there's a selected piece
+        if(id[0] !== board.color && $('.piece-selected').length) {
+            $piece.addClass('clickable');
+            $timer.addClass('clickable');
+        }
     });
 
     emitter.on('immobilePieceTimer', function(id, ratio) {
@@ -208,9 +230,10 @@ function bindEvents(emitter, board) {
         var $piece = $('#' + id);
 
         $timer.remove();
-        // it's my piece
-        if(id[0] === board.color)
+        // it's my piece or there exists a selected piece
+        if(id[0] === board.color || $('.piece-selected').length) {
             $piece.addClass('clickable');
+        }
     });
 
     emitter.on('gameOver', function(winner) {
