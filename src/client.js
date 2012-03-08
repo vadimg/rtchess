@@ -10,6 +10,11 @@ window.startRoom = function(room_id) {
     console.log('connecting');
     socket.on('connect', function() {
         socket.emit('init', room_id);
+        console.log('connected');
+        $('#disconnect-message').remove();
+    });
+    socket.on('disconnect', function() {
+        $('#chess-board').append('<div class="message" id="disconnect-message">You are disconnected. If you do not reconnect automatically, try refreshing the page.</div>');
     });
     socket.on('sideTaken', function(side) {
         $('#sit-' + side).attr('disabled', 'disabled');

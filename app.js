@@ -188,14 +188,15 @@ var SIDES = ['black', 'white'];
 io.sockets.on('connection', function(socket) {
     var room;
     socket.on('init', function(room_id) {
+        console.log('got init', room_id);
         // don't allow multiple room_ids to be sent
         if(room)
             return;
 
         room = rooms[room_id];
         if(!room) {
-            // TODO: send error message back
-            return;
+            room = new Room(room_id);
+            rooms[room_id] = room;
         }
 
         room.add(socket);
@@ -210,6 +211,7 @@ io.sockets.on('connection', function(socket) {
         if(!room)
             return;
         room.remove(socket);
+        room = undefined;
     });
     socket.on('chooseSide', function(side) {
         if(!room)
