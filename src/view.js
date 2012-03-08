@@ -80,6 +80,7 @@ function clickPiece(e, board) {
 
     // don't select immovable pieces
     if(!$piece.hasClass('clickable')) {
+        console.log($piece);
         console.log('not clickable');
         return false;
     }
@@ -138,7 +139,10 @@ function makeEvents(board) {
             console.log('adding', id);
             var pos = board.loc2pos(loc);
             var $cb = $('#chess-board');
-            $cb.append('<div class="piece" id="' + id + '"><div class="piece-spacer"></div>' + pieceChar(id) + '</div>');
+            $cb.append('<div class="piece" id="' + id + '"><div class="piece-holder" id="piece-holder-' + id + '">' + pieceChar(id) + '</div></div>');
+            $('#piece-holder-' + id).click(function() {
+                $piece.click();
+            });
             var $piece = $('#' + id);
             $piece.css('top', pos.top).css('left', pos.left);
             $piece.click(makeClickPiece(board));
