@@ -6,6 +6,7 @@ var application_root = __dirname,
     _ = require('underscore');
 
 var Board = require('./src/board');
+var config = require('./src/config');
 var common = require('./src/common');
 
 var logger = console;
@@ -233,8 +234,8 @@ io.sockets.on('connection', function(socket) {
                 var side = SIDES[i];
                 setTimeout(function() {
                     room.board.startGame();
-                }, 3000);
-                room[side].emit('starting', 3);
+                }, config.START_WAIT_SECS*1000);
+                room[side].emit('starting', config.START_WAIT_SECS);
             }
             room.init();
             room.board.addPieces(); // TODO: WRONG
