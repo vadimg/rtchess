@@ -1,5 +1,6 @@
 var common = require('./common');
 var config = require('./config');
+var EventEmitter = require('events').EventEmitter;
 
 var PIECES = {};
 
@@ -23,9 +24,13 @@ function pieceChar(piece) {
 }
 
 function drawBoard(board) {
+    var $cb = $('#chess-board');
+
+    // clear everything in the board
+    $cb.children().remove();
+
     var white = board.color === 'w';
 
-    var $cb = $('#chess-board');
     var blackCell = false;
     var left = 0;
     var top = 0;
@@ -112,22 +117,15 @@ function clickBoard(e, board) {
     var loc = board.pos2loc(to);
     var pid = $piece.attr('id');
 
-    var piece = board.getPiece(pid);
-    if(!piece.isValidMove(loc))
-        return false;
+    view.emit('moveRequest', pid, loc);
 
-    $cb.removeClass('clickable');
-    $('.piece-enemy').removeClass('clickable');
-    $piece.removeClass('piece-selected');
-
-    // move the piece
-    board.move(pid, loc);
+    return false;
 }
 
-function bindEvents(board) {
-    board.on('addPiece', function(id) {
-        var piece = board.getPiece(id);
-        var pos = piece.getPos();
+function bindEvents(emitter, board) {
+    emitter.on('addPiece', function(id, loc) {
+        console.log('adding', id);
+        var pos = board.loc2pos(loc);
         var $cb = $('#chess-board');
         $cb.append('<div class="piece" id="' + id + '"><div class="piece-spacer"></div>' + pieceChar(id) + '</div>');
         var $piece = $('#' + id);
@@ -135,7 +133,7 @@ function bindEvents(board) {
         $piece.click(makeClickPiece(board));
     });
 
-    board.on('activatePiece', function(id) {
+    emitter.on('activatePiece', function(id) {
         var $piece = $('#' + id);
         if(id[0] !== board.color) {
             $piece.addClass('piece-enemy');
@@ -144,23 +142,38 @@ function bindEvents(board) {
         $piece.addClass('clickable');
     });
 
-    board.on('removePiece', function(id) {
+    emitter.on('removePiece', function(id) {
         $('#' + id).remove();
     });
 
-    board.on('movingPiece', function(id, pos) {
+    emitter.on('movePiece', function(id, loc) {
+        var $cb = $('#chess-board');
         var $piece = $('#' + id);
-        $piece.removeClass('clickable');
-        $piece.css('top', pos.top).css('left', pos.left);
+        $cb.removeClass('clickable');
+        $('.piece-enemy').removeClass('clickable');
+        $piece.removeClass('piece-selected');
     });
 
-    board.on('immobilePiece', function(id) {
+    emitter.on('movingPiece', function(id, from, to, ratio) {
+        var fromPos = board.loc2pos(from);
+        var toPos = board.loc2pos(to);
+
+        // calculate deltas
+        var dtop = ratio*(toPos.top - fromPos.top);
+        var dleft = ratio*(toPos.left - fromPos.left);
+
+        var $piece = $('#' + id);
+        $piece.removeClass('clickable');
+        $piece.css('top', fromPos.top + dtop).css('left', fromPos.left + dleft);
+    });
+
+    emitter.on('immobilePiece', function(id) {
         var tid = id + '-timer';
         var $piece = $('#' + id);
         $piece.append('<div class="timer" id="' + tid + '"></div>');
     });
 
-    board.on('immobilePieceTimer', function(id, ratio) {
+    emitter.on('immobilePieceTimer', function(id, ratio) {
         var tid = id + '-timer';
         var $timer = $('#' + tid);
 
@@ -169,19 +182,27 @@ function bindEvents(board) {
         $timer.css('top', top).css('height', height);
     });
 
-    board.on('mobilePiece', function(id, myPiece) {
+    emitter.on('mobilePiece', function(id) {
         var tid = id + '-timer';
         var $timer = $('#' + tid);
         var $piece = $('#' + id);
 
         $timer.remove();
-        if(myPiece)
+        // it's my piece
+        if(id[0] === board.color)
             $piece.addClass('clickable');
+    });
+
+    emitter.on('gameOver', function(winner) {
+        var $cb = $('#chess-board');
+        $cb.append('<div class="message">Game over! ' + winner + ' wins!</div>');
     });
 }
 
+var view = new EventEmitter;
 
 module.exports = {
     drawBoard: drawBoard,
-    bindEvents: bindEvents
+    bindEvents: bindEvents,
+    view: view
 };

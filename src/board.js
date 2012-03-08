@@ -36,7 +36,7 @@ Board.prototype.addPiece = function(id, loc) {
     this.pieces[id] = piece;
     this.locs[loc] = piece;
 
-    this.emit('addPiece', id);
+    this.emit('addPiece', id, loc);
 
     return piece;
 };
@@ -81,8 +81,18 @@ Board.prototype.loc2pos = function(loc) {
     }
 };
 
+Board.prototype.moveRequest = function(id, loc) {
+    var piece = this.getPiece(id);
+    if(!piece.isValidMove(loc))
+        return false;
+
+    // move the piece
+    this.move(id, loc);
+};
+
 Board.prototype.move = function(pid, to) {
     var piece = this.pieces[pid];
+    this.emit('movePiece', pid, to);
 
     piece.moving(to);
 
@@ -99,37 +109,31 @@ Board.prototype.move = function(pid, to) {
     // get the distance to the destination
     var len = Math.sqrt(Math.pow(toPos.top - fromPos.top, 2) + Math.pow(toPos.left - fromPos.left, 2));
 
-    // create a unit vector of the desired movement
-    var utop = config.PIECE_SPEED*(toPos.top - fromPos.top)/len;
-    var uleft = config.PIECE_SPEED*(toPos.left - fromPos.left)/len;
+    // the change in ratio per time period
+    var rdelta = config.PIECE_SPEED/len;
+
+    var ratio = 0;
 
     var self = this;
-    function moveStep(curLeft, curTop) {
-        var nleft = curLeft + uleft;
-        var ntop = curTop + utop;
-        var nlen = Math.sqrt(Math.pow(ntop - fromPos.top, 2) + Math.pow(nleft - fromPos.left, 2));
-        var ret = false;
+    function moveStep() {
+        ratio += rdelta;
 
         // make sure we don't move too far
-        if(nlen >= len) {
-            nleft = toPos.left;
-            ntop = toPos.top;
-            ret = true;
+        if(ratio > 1) {
+            ratio = 1;
         }
 
-        self.emit('movingPiece', pid, {left: nleft, top: ntop});
+        self.emit('movingPiece', pid, from, to, ratio);
 
-        if(ret) {
+        if(ratio === 1) {
             self.moved(pid, to);
             piece.immobilize();
             return;
         }
 
-        setTimeout(function() {
-            moveStep(nleft, ntop);
-        }, 50);
+        setTimeout(moveStep, 50);
     }
-    moveStep(fromPos.left, fromPos.top);
+    moveStep();
 };
 
 Board.prototype.remove = function(id) {
@@ -154,7 +158,7 @@ Board.prototype.moved = function(pid, to) {
 
         // if you captured the king, game over
         if(enemy instanceof pieces.King) {
-            alert(enemy.color + ' loses!');
+            this.emit('gameOver', common.letter2color(piece.color));
         }
     }
     this.locs[to] = piece;
@@ -162,6 +166,7 @@ Board.prototype.moved = function(pid, to) {
     delete this.targets[to][piece.color];
 
     piece.moved();
+    this.emit('movedPiece', pid, to);
 };
 
 Board.prototype.addPieces = function() {

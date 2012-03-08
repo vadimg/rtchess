@@ -21,15 +21,13 @@ Piece.prototype.activate = function() {
 };
 
 Piece.prototype.immobilize = function() {
-    var myPiece = this.color === this.board.color;
-
     this.immobileTimer = 1;
     this.board.emit('immobilePiece', this.id);
 
     var self = this;
     function timer() {
         if(self.immobileTimer <= 0) {
-            self.board.emit('mobilePiece', self.id, myPiece);
+            self.board.emit('mobilePiece', self.id);
             return;
         }
         self.board.emit('immobilePieceTimer', self.id, self.immobileTimer);

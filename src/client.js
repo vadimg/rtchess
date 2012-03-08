@@ -23,12 +23,13 @@ window.startRoom = function(room_id) {
         $('#start-game').removeAttr('disabled');
     });
     socket.on('starting', function(secs) {
+        $('#wait-message').remove();
         $('#chess-board').append('<div class="message" id="starting-message">Game starting in <span id="starting-secs"></span> seconds</div>');
         secs -= 0; // convert to number
         function countDown() {
             if(secs === 0) {
-                board.startGame();
                 $('#starting-message').remove();
+                return;
             }
             $('#starting-secs').text(secs);
             secs -= 1;
@@ -52,9 +53,11 @@ window.startRoom = function(room_id) {
     var board;
     function sit(side) {
         board = new Board(side[0]);
-        view.bindEvents(board);
+        view.bindEvents(socket, board);
+        view.view.on('moveRequest', function(id, loc) {
+            socket.emit('moveRequest', id, loc);
+        });
         view.drawBoard(board);
-        board.addPieces();
     }
 
 };

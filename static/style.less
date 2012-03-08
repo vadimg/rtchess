@@ -2,6 +2,16 @@
 @size: 80px;
 @piece-size: 60px;
 @num-squares: 8;
+@message-font-size: 30px;
+
+.disable-selection() {
+    // disable selection
+    cursor: default;
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+}
 
 #chess-board {
     border: @border-width solid #333;
@@ -47,12 +57,7 @@
     text-align:center;
     position: absolute;
 
-    // disable selection
-    cursor: default;
-    -moz-user-select: -moz-none;
-    -khtml-user-select: none;
-    -webkit-user-select: none;
-    -o-user-select: none;
+    .disable-selection;
 }
 
 .clickable {
@@ -78,8 +83,11 @@
 .message {
     position: absolute;
     left: 0px;
-    top: @size*@num-squares/2;
-    font-size:40px;
+    top: @size*@num-squares/2-@size/2-@message-font-size/2;
+    font-size:@message-font-size;
+    font-weight: bold;
     width:100%;
     text-align: center;
+
+    .disable-selection;
 }

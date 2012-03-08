@@ -5,6 +5,9 @@ var application_root = __dirname,
     EventEmitter = require('events').EventEmitter,
     _ = require('underscore');
 
+var Board = require('./src/board');
+var common = require('./src/common');
+
 var logger = console;
 
 var app = express.createServer();
@@ -70,8 +73,23 @@ function Room(id) {
     this.black = null;
     this.starting= {};
     this.watchers = [];
-
+    this.board = new Board();
+    var events = ['addPiece', 'removePiece', 'movePiece', 'movingPiece', 'immobilePiece', 'immobilePieceTimer', 'mobilePiece', 'gameOver'];
     var self = this;
+    var broadcast = {
+        emit: function() {
+                  self.broadcast.apply(self, arguments);
+              }
+    };
+    common.bindPassThrough(events, broadcast, this.board);
+    this.board.on('activatePiece', function(id) {
+        for(var i=0, l = SIDES.length; i < l; ++i) {
+            var side = SIDES[i];
+            if(self[side])
+                self[side].emit('activatePiece', id);
+        }
+    });
+
     function removeWatcher() {
         // if it has no one in it, remove the room
         if(self.watchers.length === 0) {
@@ -168,9 +186,16 @@ io.sockets.on('connection', function(socket) {
             console.log('starting game');
             for(var i=0, l = SIDES.length; i < l; ++i) {
                 var side = SIDES[i];
+                setTimeout(function() {
+                    room.board.startGame();
+                }, 3000);
                 room[side].emit('starting', 3);
             }
+            room.board.addPieces(); // TODO: WRONG
         }
+    });
+    socket.on('moveRequest', function(id, loc) {
+        room.board.moveRequest(id, loc);
     });
 });
 
