@@ -23,6 +23,10 @@ Piece.prototype.immobilize = function() {
 
     var self = this;
     function timer() {
+        // stop when game is disabled
+        if(self.board.disabled)
+            return;
+
         if(self.immobileTimer <= 0) {
             self.board.emit('mobilePiece', self.id);
             return;

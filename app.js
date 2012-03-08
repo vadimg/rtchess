@@ -73,7 +73,6 @@ function Room(id) {
     this.black = null;
     this.starting= {};
     this.watchers = [];
-    this.gameStarted = false;
     var self = this;
     this.init();
 
@@ -91,7 +90,6 @@ function Room(id) {
 
 Room.prototype.init = function() {
     var self = this;
-    this.gameStarted = false;
     this.board = new Board();
 
     var events = ['addPiece', 'removePiece', 'movePiece', 'movingPiece', 'immobilePiece', 'immobilePieceTimer', 'mobilePiece', 'gameOver'];
@@ -163,8 +161,9 @@ Room.prototype.remove = function(socket) {
             delete this.starting[side];
             this.broadcast('sideFree', side);
             console.log(side, ' disconnected');
-            if(this.gameStarted) {
+            if(!this.board.disabled) {
                 this.starting = {}; // no one is starting now
+                this.board.disable();
                 console.log(side, ' disconnected during game');
                 this.broadcast('playerDisconnected', side);
             }
@@ -223,7 +222,6 @@ io.sockets.on('connection', function(socket) {
             for(var i=0, l = SIDES.length; i < l; ++i) {
                 var side = SIDES[i];
                 setTimeout(function() {
-                    room.gameStarted = true;
                     room.board.startGame();
                 }, 3000);
                 room[side].emit('starting', 3);

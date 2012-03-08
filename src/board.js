@@ -8,6 +8,7 @@ function Board(color) {
     this.pieces = {};
     this.locs = {};
     this.targets = {};
+    this.disabled = true;
 
     // fill up targets
     for(var i=1; i <= 8; ++i) {
@@ -124,6 +125,10 @@ Board.prototype.move = function(pid, to) {
 
     var self = this;
     function moveStep() {
+        // stop moving when game is disabled
+        if(self.disabled)
+            return;
+
         ratio += rdelta;
 
         // make sure we don't move too far
@@ -167,6 +172,7 @@ Board.prototype.moved = function(pid, to) {
         // if you captured the king, game over
         if(enemy instanceof pieces.King) {
             this.emit('gameOver', piece.color);
+            this.disable();
         }
     }
     this.locs[to] = piece;
@@ -206,10 +212,14 @@ Board.prototype.addPieces = function() {
 };
 
 Board.prototype.startGame = function() {
-    var color = this.color;
+    this.disabled = false;
     // TODO: this is hacky, but oh well
     this.emit('activateBoard'); // Piece objects don't get activated :(
-}
+};
+
+Board.prototype.disable = function() {
+    this.disabled = true;
+};
 
 module.exports = Board;
 
