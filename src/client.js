@@ -13,6 +13,7 @@ window.startRoom = function(room_id) {
     });
     socket.on('sideTaken', function(side) {
         $('#sit-' + side).attr('disabled', 'disabled');
+        $('#disconnect-message').remove();
     });
     socket.on('sideFree', function(side) {
         console.log('sidefree', side);
@@ -42,7 +43,7 @@ window.startRoom = function(room_id) {
 
     socket.on('playerDisconnected', function(color) {
         var prettyColor = common.letter2color(color);
-        $('#chess-board').append('<div class="message">' + prettyColor + ' was disconnected!</div>');
+        $('#chess-board').append('<div class="message" id="disconnect-message">' + prettyColor + ' was disconnected!</div>');
         view.disableBoard();
     });
 
