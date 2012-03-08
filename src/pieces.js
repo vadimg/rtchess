@@ -52,6 +52,10 @@ Piece.prototype.getPos = function() {
 };
 
 Piece.prototype.isValidMove = function(loc) {
+    // make sure the piece isn't already moving
+    if(!this.loc)
+        return false;
+
     // prevent moving to an occupied square
     if(this.hasMyPiece(loc))
         return false;
