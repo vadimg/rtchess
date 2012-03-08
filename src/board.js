@@ -83,8 +83,9 @@ Board.prototype.loc2pos = function(loc) {
 
 Board.prototype.moveRequest = function(id, loc) {
     var piece = this.getPiece(id);
-    if(!piece.isValidMove(loc))
+    if(!piece.isValidMove(loc)) {
         return false;
+    }
 
     // move the piece
     this.move(id, loc);
@@ -199,9 +200,8 @@ Board.prototype.addPieces = function() {
 
 Board.prototype.startGame = function() {
     var color = this.color;
-    this.eachPiece(function(id, piece) {
-        piece.activate();
-    });
+    // TODO: this is hacky, but oh well
+    this.emit('activateBoard'); // Piece objects don't get activated :(
 }
 
 module.exports = Board;

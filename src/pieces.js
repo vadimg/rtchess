@@ -8,15 +8,12 @@ function Piece(id, loc) {
     this.loc = loc;
     this.id = id;
     this.color = id[0];
-    this.active = false;
 
     // immobile timer, when it reaches 0 the piece is mobile
     this.immobileTimer = 0;
 }
 
 Piece.prototype.activate = function() {
-    this.active = true;
-    this.immobileTimer = 0;
     this.board.emit('activatePiece', this.id);
 };
 
@@ -272,7 +269,6 @@ King.prototype.isValidMove = function(loc) {
 
         // TODO: make sure king's path is not under attack
 
-        console.log('returning true');
         return true;
     }
     return false;

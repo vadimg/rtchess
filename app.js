@@ -73,23 +73,8 @@ function Room(id) {
     this.black = null;
     this.starting= {};
     this.watchers = [];
-    this.board = new Board();
     this.gameStarted = false;
-    var events = ['addPiece', 'removePiece', 'movePiece', 'movingPiece', 'immobilePiece', 'immobilePieceTimer', 'mobilePiece', 'gameOver'];
     var self = this;
-    var broadcast = {
-        emit: function() {
-                  self.broadcast.apply(self, arguments);
-              }
-    };
-    common.bindPassThrough(events, broadcast, this.board);
-    this.board.on('activatePiece', function(id) {
-        for(var i=0, l = SIDES.length; i < l; ++i) {
-            var side = SIDES[i];
-            if(self[side])
-                self[side].emit('activatePiece', id);
-        }
-    });
 
     function removeWatcher() {
         // if it has no one in it, remove the room
@@ -101,6 +86,37 @@ function Room(id) {
         setTimeout(removeWatcher, 30000);
     }
     setTimeout(removeWatcher, 30000);
+};
+
+Room.prototype.init = function() {
+    var self = this;
+    this.gameStarted = false;
+    this.board = new Board();
+
+    var events = ['addPiece', 'removePiece', 'movePiece', 'movingPiece', 'immobilePiece', 'immobilePieceTimer', 'mobilePiece', 'gameOver'];
+
+    var broadcast = {
+        emit: function() {
+                  self.broadcast.apply(self, arguments);
+              }
+    };
+    common.bindPassThrough(events, broadcast, this.board);
+
+    this.board.on('activatePiece', function(id) {
+        for(var i=0, l = SIDES.length; i < l; ++i) {
+            var side = SIDES[i];
+            if(self[side])
+                self[side].emit('activatePiece', id);
+        }
+    });
+    this.board.on('activateBoard', function() {
+        console.log('board activate');
+        for(var i=0, l = SIDES.length; i < l; ++i) {
+            var side = SIDES[i];
+            if(self[side])
+                self[side].emit('activateBoard');
+        }
+    });
 };
 
 Room.prototype.broadcast = function() {
@@ -134,7 +150,7 @@ Room.prototype.remove = function(socket) {
             this.broadcast('sideFree', side);
             console.log(side, ' disconnected');
             if(this.gameStarted) {
-                console.log(side, ' really disconnected');
+                console.log(side, ' disconnected during game');
                 this.broadcast('playerDisconnected', side);
             }
         }
@@ -197,6 +213,7 @@ io.sockets.on('connection', function(socket) {
                 }, 3000);
                 room[side].emit('starting', 3);
             }
+            room.init();
             room.board.addPieces(); // TODO: WRONG
         }
     });

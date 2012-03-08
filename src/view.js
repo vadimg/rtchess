@@ -113,8 +113,9 @@ function clickBoard(e, board) {
     console.log('cb click');
 
     var $cb = $('#chess-board');
-    if(!$cb.hasClass('clickable'))
+    if(!$cb.hasClass('clickable')) {
         return false;
+    }
 
     var $piece = $('.piece-selected');
     var to = $(e.target).position();
@@ -139,14 +140,27 @@ function bindEvents(emitter, board) {
         $piece.click(makeClickPiece(board));
     });
 
-    emitter.on('activatePiece', function(id) {
+    emitter.on('activateBoard', function() {
+        console.log('activating');
+        // TODO: do this a better way
+        $('.piece').each(function(i, piece) {
+            $piece = $(piece);
+            var id = $piece.attr('id');
+            activatePiece(id);
+        });
+    });
+
+    function activatePiece(id) {
         var $piece = $('#' + id);
         if(id[0] !== board.color) {
             $piece.addClass('piece-enemy');
             return;
         }
         $piece.addClass('clickable');
-    });
+    }
+
+
+    emitter.on('activatePiece', activatePiece);
 
     emitter.on('removePiece', function(id) {
         $('#' + id).remove();
