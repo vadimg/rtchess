@@ -83,6 +83,13 @@ Board.prototype.loc2pos = function(loc) {
 
 Board.prototype.moveRequest = function(id, loc) {
     var piece = this.getPiece(id);
+
+    if(!piece) {
+        // could happen if during race condition when piece
+        // is captured right before it requests to move
+        return false;
+    }
+
     if(!piece.isValidMove(loc)) {
         return false;
     }
