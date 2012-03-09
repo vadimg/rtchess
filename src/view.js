@@ -51,25 +51,22 @@ function makeClickPiece(board) {
     };
 }
 
-function clickPiece(e, board) {
-    console.log('piece click');
-    var $piece = $(e.target);
-
+function clickPiece2($piece) {
     // don't select immovable pieces
-    if(!$piece.hasClass('clickable')) {
-        console.log($piece);
+    if($piece.hasClass('unselectable')) {
         console.log('not clickable');
-        return false;
+        return true;
     }
 
-    // don't select enemy pieces
     if($piece.hasClass('piece-enemy')) {
         // you can treat enemy pieces as part of the board
-        return clickBoard(e, board);
+        console.log('enemy piece');
+        return true;
     }
 
     // don't do anything if piece is already selected
     if($piece.hasClass('piece-selected')) {
+        console.log('selected piece');
         return false;
     }
 
@@ -77,17 +74,54 @@ function clickPiece(e, board) {
     $('.piece-selected').removeClass('piece-selected');
 
     $piece.addClass('piece-selected');
+    console.log('add selected piece');
     var $cb = $('#chess-board');
     $cb.addClass('clickable');
-    $('.piece-enemy').addClass('clickable');
-    $('.piece-enemy > .timer').addClass('clickable');
+    //$('.piece-enemy').addClass('clickable');
+    //$('.piece-enemy > .timer').addClass('clickable');
     return false;
+}
+
+function clickPiece(e, board) {
+    console.log('piece click');
+    var $piece = $(e.target);
+
+    // don't process for non-pieces
+    if(!$piece.hasClass('piece')) {
+        var $parent = $piece.parent('.piece');
+        if($parent.length) {
+            $piece = $parent;
+        } else {
+            return true;
+        }
+    }
+
+    return clickPiece2($piece);
 }
 
 function makeClickBoard(board) {
     return function(e) {
         return clickBoard(e, board);
     };
+}
+
+function findBoardPos(e) {
+    $cur = $(e.target);
+    var cur = {
+        left: e.offsetX,
+        top: e.offsetY
+    };
+    while($cur.length && $cur.attr('id') !== 'chess-board') {
+        var pos = $cur.position();
+        cur.left += pos.left;
+        cur.top += pos.top;
+        $cur = $cur.parent();
+    }
+
+    if(!$cur.length)
+        return null;
+    else
+        return cur;
 }
 
 function clickBoard(e, board) {
@@ -99,12 +133,21 @@ function clickBoard(e, board) {
     }
 
     var $piece = $('.piece-selected');
-    var to = $(e.target).position();
-
-    // make sure you can move here
-    var loc = board.pos2loc(to);
     var pid = $piece.attr('id');
 
+    var pos = findBoardPos(e);
+    if(!pos) {
+        return false;
+    }
+
+    var loc = board.click2loc(pos);
+
+    if(!board.isValidLoc(loc)) {
+        console.log('invalid loc: ', loc);
+        return false;
+    }
+
+    // make sure you can move here
     view.emit('moveRequest', pid, loc);
 
     return false;
@@ -117,9 +160,7 @@ function makeEvents(board) {
             var pos = board.loc2pos(loc);
             var $cb = $('#chess-board');
             $cb.append('<div class="piece" id="' + id + '"><div class="piece-holder" id="piece-holder-' + id + '"></div></div>');
-            $('#piece-holder-' + id).click(function() {
-                $piece.click();
-            }).css('background', 'url(' + pieceImage(id) + ') no-repeat center');
+            $('#piece-holder-' + id).css('background', 'url(' + pieceImage(id) + ') no-repeat center');
             var $piece = $('#' + id);
             $piece.css('top', pos.top).css('left', pos.left);
             $piece.click(makeClickPiece(board));
@@ -141,7 +182,7 @@ function makeEvents(board) {
                 $piece.addClass('piece-enemy');
                 return;
             }
-            $piece.addClass('clickable');
+            $piece.addClass('clickable').removeClass('unselectable');
         },
 
 
@@ -158,8 +199,6 @@ function makeEvents(board) {
             // only remove clickables if no other selected pieces
             if(!$('.piece-selected').length) {
                 $cb.removeClass('clickable');
-                $('.piece-enemy').removeClass('clickable');
-                $('.timer').removeClass('clickable');
             }
         },
 
@@ -172,7 +211,7 @@ function makeEvents(board) {
             var dleft = ratio*(toPos.left - fromPos.left);
 
             var $piece = $('#' + id);
-            $piece.removeClass('clickable');
+            $piece.addClass('unselectable');
             $piece.css('top', fromPos.top + dtop).css('left', fromPos.left + dleft);
         },
 
@@ -188,11 +227,7 @@ function makeEvents(board) {
                 return $piece.click();
             });
 
-            // make clickable if it's an enemy piece and there's a selected piece
-            if(id[0] !== board.color && $('.piece-selected').length) {
-                $piece.addClass('clickable');
-                $timer.addClass('clickable');
-            }
+            $piece.addClass('unselectable');
         },
 
         immobilePieceTimer: function(id, ratio) {
@@ -210,16 +245,13 @@ function makeEvents(board) {
             var $piece = $('#' + id);
 
             $timer.remove();
-            // it's my piece or there exists a selected piece
-            if(id[0] === board.color || $('.piece-selected').length) {
-                $piece.addClass('clickable');
-            }
+            $piece.removeClass('unselectable');
         },
 
         disabled: function() {
             var $cb = $('#chess-board');
             $cb.removeClass('clickable');
-            $('.piece').removeClass('clickable').removeClass('piece-selected');
+            $('.piece').addClass('unselectable').removeClass('piece-selected');
         }
 
     };

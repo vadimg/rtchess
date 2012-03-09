@@ -82,12 +82,30 @@ Board.prototype.loc2pos = function(loc) {
     }
 };
 
+// convert a click (within a square) to a loc
+Board.prototype.click2loc = function(click) {
+    var pos = {
+        left: Math.floor(click.left/config.SIZE)*config.SIZE,
+        top: Math.floor(click.top/config.SIZE)*config.SIZE
+    };
+
+    return this.pos2loc(pos);
+};
+
+Board.prototype.isValidLoc = function(loc) {
+    return loc[0] >= 1 && loc[0] <= 8 && loc[1] >= 1 && loc[1] <= 8;
+};
+
 Board.prototype.moveRequest = function(id, loc) {
     var piece = this.getPiece(id);
 
     if(!piece) {
         // could happen if during race condition when piece
         // is captured right before it requests to move
+        return false;
+    }
+
+    if(!this.isValidLoc(loc)) {
         return false;
     }
 
