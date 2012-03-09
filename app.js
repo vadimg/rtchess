@@ -185,6 +185,9 @@ Room.prototype.remove = function(socket) {
 var rooms = {};
 var SIDES = ['black', 'white'];
 
+// only use long polling
+io.set('transports', ['xhr-polling', 'jsonp-polling']);
+
 io.sockets.on('connection', function(socket) {
     var room;
     socket.on('init', function(room_id) {
