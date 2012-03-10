@@ -1,4 +1,11 @@
-(function(){
+(function(window){
+
+// add dummy console.log for IE (TODO: remove)
+if(!window.console) {
+    window.console = {
+        log: function() {}
+    };
+}
 
 var view = require('./view');
 var common = require('./common');
@@ -87,4 +94,4 @@ window.startRoom = function(room_id) {
 
 };
 
-})();
+})(window);
