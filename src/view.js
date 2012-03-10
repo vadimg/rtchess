@@ -159,7 +159,7 @@ function makeEvents(board) {
             console.log('adding', id);
             var pos = board.loc2pos(loc);
             var $cb = $('#chess-board');
-            $cb.append('<div class="piece" id="' + id + '"><div class="piece-holder" id="piece-holder-' + id + '"></div></div>');
+            $cb.append('<div class="piece unselectable" id="' + id + '"><div class="piece-holder" id="piece-holder-' + id + '"></div></div>');
             $('#piece-holder-' + id).css('background', 'url(' + pieceImage(id) + ') no-repeat center');
             var $piece = $('#' + id);
             $piece.css('top', pos.top).css('left', pos.left);

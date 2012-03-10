@@ -97,6 +97,10 @@ Board.prototype.isValidLoc = function(loc) {
 };
 
 Board.prototype.moveRequest = function(id, loc) {
+    // don't allow moves on inactive boards
+    if(this.disabled)
+        return;
+
     var piece = this.getPiece(id);
 
     if(!piece) {

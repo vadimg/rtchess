@@ -75,7 +75,6 @@ function Room(id) {
     this.starting= {};
     this.watchers = [];
     var self = this;
-    this.init();
 
     function removeWatcher() {
         // if it has no one in it, remove the room
@@ -89,6 +88,7 @@ function Room(id) {
     setTimeout(removeWatcher, 30000);
 };
 
+// create board, bind events
 Room.prototype.init = function() {
     var self = this;
     this.board = new Board();
@@ -130,6 +130,9 @@ Room.prototype.init = function() {
                 self[side].emit('disabled');
         }
     });
+
+    // add pieces TODO: send only 1 signal to client to add all pieces
+    self.board.addPieces();
 };
 
 Room.prototype.broadcast = function() {
@@ -147,7 +150,6 @@ Room.prototype.setSide = function(side, socket) {
             this[s] = null;
             delete this.starting[s];
             this.broadcast('sideFree', s);
-            console.log(s, ' disconnected');
         }
     }
     this[side] = socket;
@@ -243,7 +245,6 @@ io.sockets.on('connection', function(socket) {
                 room[side].emit('starting', config.START_WAIT_SECS);
             }
             room.init();
-            room.board.addPieces(); // TODO: WRONG
         }
     });
     socket.on('moveRequest', function(id, loc) {
