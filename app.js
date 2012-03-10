@@ -192,6 +192,7 @@ io.set('transports', ['xhr-polling', 'jsonp-polling']);
 
 io.sockets.on('connection', function(socket) {
     var room;
+    var mySide;
     socket.on('init', function(room_id) {
         console.log('got init', room_id);
         // don't allow multiple room_ids to be sent
@@ -222,6 +223,7 @@ io.sockets.on('connection', function(socket) {
         if(!room)
             return;
         if(!room[side]) {
+            mySide = side;
             room.setSide(side, socket);
             socket.emit('gotSide', side);
         }
@@ -248,7 +250,7 @@ io.sockets.on('connection', function(socket) {
         }
     });
     socket.on('moveRequest', function(id, loc) {
-        room.board.moveRequest(id, loc);
+        room.board.moveRequest(id, loc, mySide);
     });
 });
 

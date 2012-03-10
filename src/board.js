@@ -96,12 +96,16 @@ Board.prototype.isValidLoc = function(loc) {
     return loc[0] >= 1 && loc[0] <= 8 && loc[1] >= 1 && loc[1] <= 8;
 };
 
-Board.prototype.moveRequest = function(id, loc) {
+Board.prototype.moveRequest = function(id, loc, mySide) {
     // don't allow moves on inactive boards
     if(this.disabled)
         return;
 
     var piece = this.getPiece(id);
+
+    // don't allow moving of other side's pieces
+    if(mySide[0] !== piece.color)
+        return;
 
     if(!piece) {
         // could happen if during race condition when piece
