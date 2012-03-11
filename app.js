@@ -174,7 +174,9 @@ Room.prototype.remove = function(socket) {
             delete this.starting[side];
             this.broadcast('sideFree', side);
             console.log(side, ' disconnected');
-            if(!this.board.disabled) {
+
+            // if disconnect happened during a game
+            if(this.board && !this.board.disabled) {
                 this.starting = {}; // no one is starting now
                 this.board.disable();
                 console.log(side, ' disconnected during game');
