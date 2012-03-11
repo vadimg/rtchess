@@ -133,6 +133,12 @@ function clickBoard(e, board) {
     }
 
     var $piece = $('.piece-selected');
+
+    // don't do anything if no piece was selected
+    // this can happen when the select piece gets taken
+    if(!$piece.length)
+        return false;
+
     var pid = $piece.attr('id');
 
     var pos = findBoardPos(e);
