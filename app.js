@@ -68,6 +68,11 @@ app.error(function(err, req, res) {
     }
 });
 
+process.on('uncaughtException', function(err) {
+  logger.error('UNCAUGHT EXCEPTION: ', err);
+  logger.error(err.stack);
+});
+
 function Room(id) {
     this.id = id;
     this.white = null;
