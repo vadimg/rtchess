@@ -98,7 +98,7 @@ Room.prototype.init = function() {
     var self = this;
     this.board = new Board();
 
-    var events = ['addPiece', 'removePiece', 'movePiece', 'movingPiece', 'immobilePiece', 'immobilePieceTimer', 'mobilePiece', 'gameOver'];
+    var events = ['addPiece', 'removePiece', 'movePiece', 'movedPiece', 'immobilePiece', 'mobilePiece', 'gameOver'];
 
     var broadcast = {
         emit: function() {
