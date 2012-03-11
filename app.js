@@ -200,6 +200,9 @@ io.set('transports', ['xhr-polling', 'jsonp-polling']);
 io.sockets.on('connection', function(socket) {
     var room;
     var mySide;
+    socket.on('ping', function() {
+        socket.emit('pong');
+    });
     socket.on('init', function(room_id) {
         console.log('got init', room_id);
         // don't allow multiple room_ids to be sent
