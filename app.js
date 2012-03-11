@@ -5,9 +5,9 @@ var application_root = __dirname,
     EventEmitter = require('events').EventEmitter,
     _ = require('underscore');
 
-var Board = require('./src/board');
-var config = require('./src/config');
-var common = require('./src/common');
+var Board = require('./lib/board');
+var config = require('./lib/config');
+var common = require('./lib/common');
 
 var logger = console;
 
@@ -20,7 +20,7 @@ var production = process.env.NODE_ENV === 'production';
 var pubdir = path.join(application_root, 'static');
 
 app.configure(function(){
-    var bundle = require('browserify')(__dirname + '/src/client.js');
+    var bundle = require('browserify')(__dirname + '/lib/client.js');
     app.use(bundle);
     app.use(require('connect-less')({ src: pubdir }));
 });
