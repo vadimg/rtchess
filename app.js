@@ -275,7 +275,7 @@ app.get('/r/:room_id', function(req, res) {
     if(!rooms[room_id]) {
         rooms[room_id] = new Room(room_id);
     }
-    return res.render('index', {room_id: room_id});
+    return res.render('room', {room_id: room_id});
 });
 
 // helpers ========================
