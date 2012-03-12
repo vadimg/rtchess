@@ -4,6 +4,13 @@
 @num-squares: 8;
 @message-font-size: 30px;
 
+// disable rounded corners on navbar
+.navbar-inner {
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+}
+
 .disable-selection() {
     // disable selection
     cursor: inherit;
@@ -100,4 +107,10 @@
     display: inline-block;
     width: 8em;
     text-align: left;
+}
+
+.button-bar {
+    padding: 5px;
+    text-align: center;
+    width: 100%;
 }

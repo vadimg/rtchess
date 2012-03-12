@@ -42,14 +42,14 @@ app.configure('production', function() {
 
 
 app.configure(function(){
+    app.register('.html', require('hbs'));
     app.use(express.bodyParser());
     app.use(express.methodOverride());
     app.use(app.router);
     app.set('views', path.join(application_root, 'views'));
     app.set('view engine', 'html');
-    app.register('.html', require('hbs'));
     app.set('view options', {
-        layout: false
+        layout: true
     });
 });
 
@@ -69,8 +69,8 @@ app.error(function(err, req, res) {
 });
 
 process.on('uncaughtException', function(err) {
-  logger.error('UNCAUGHT EXCEPTION: ', err);
-  logger.error(err.stack);
+    logger.error('UNCAUGHT EXCEPTION: ', err);
+    logger.error(err.stack);
 });
 
 function Room(id) {
@@ -80,18 +80,7 @@ function Room(id) {
     this.starting= {};
     this.watchers = [];
     var self = this;
-
-    function removeWatcher() {
-        // if it has no one in it, remove the room
-        if(self.watchers.length === 0) {
-            console.log('DELETING ROOM ' + self.id);
-            delete rooms[self.id];
-            return;
-        }
-        setTimeout(removeWatcher, 30000);
-    }
-    setTimeout(removeWatcher, 30000);
-};
+}
 
 // create board, bind events
 Room.prototype.init = function() {
@@ -189,6 +178,12 @@ Room.prototype.remove = function(socket) {
             }
         }
     }
+
+    // delete the room if no one is in it
+    if(this.watchers.length === 0) {
+        console.log('DELETING ROOM ' + this.id);
+        delete rooms[this.id];
+    }
 };
 
 var rooms = {};
@@ -265,9 +260,28 @@ io.sockets.on('connection', function(socket) {
 });
 
 app.get('/', function(req, res) {
-    var room_id = randomString(20);
+    return res.render('index');
+});
+
+app.get('/new_room', function(req, res) {
+    var room_id = randomString(10);
     rooms[room_id] = new Room(room_id);
     return res.redirect('/r/' + room_id);
+});
+
+app.get('/join_random', function(req, res) {
+    var roomList = [];
+    for(var id in rooms) {
+        roomList.push(rooms[id]);
+    }
+
+    if(!roomList.length) {
+        return res.redirect('/new_room');
+    }
+
+    var i = Math.floor(Math.random()*roomList.length);
+    var room = roomList[i];
+    return res.redirect('/r/' + room.id);
 });
 
 app.get('/r/:room_id', function(req, res) {
@@ -275,7 +289,10 @@ app.get('/r/:room_id', function(req, res) {
     if(!rooms[room_id]) {
         rooms[room_id] = new Room(room_id);
     }
-    return res.render('room', {room_id: room_id});
+    return res.render('room', {
+        title: 'Room',
+        room_id: room_id
+    });
 });
 
 // helpers ========================

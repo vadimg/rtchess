@@ -1,44 +1,14 @@
-<html>
-    <head>
-        <script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>
-        <script src="/jquery-1.7.1.js"></script>
-        <script src="/socket.io/socket.io.js"></script>
-        <script src="/browserify.js" type="text/javascript"></script>
-        <script type="text/javascript">
-            $(function() {
-                startRoom('{{ room_id }}');
-            });
-        </script>
-        <link rel="stylesheet" type="text/css" href="/normalize.css" />
-        <link rel="stylesheet" type="text/css" href="/style.css" />
-        <title>REAL TIME chess</title>
-    </head>
-    <body>
-        <center>
-            <div id="chess-board"></div>
-            <button id="sit-white">Sit as White</button>
-            <button id="sit-black">Sit as Black</button>
-            <button id="start-game" disabled="disabled">Start Game</button>
-            <span id="ping-text">Ping: <span id="ping"></span> ms</span>
-            <p><a href="/">New Game</a></p>
-        </center>
-        <script type="text/javascript">
-            var _sf_async_config={uid:1,domain:"rtchess.deapthoughts.com"};
-            (function(){
-             function loadChartbeat() {
-             window._sf_endpt=(new Date()).getTime();
-             var e = document.createElement('script');
-             e.setAttribute('language', 'javascript');
-             e.setAttribute('type', 'text/javascript');
-             e.setAttribute('src',
-                 (("https:" == document.location.protocol) ? "https://a248.e.akamai.net/chartbeat.download.akamai.com/102508/" : "http://static.chartbeat.com/") +
-                 "js/chartbeat.js");
-             document.body.appendChild(e);
-             }
-             var oldonload = window.onload;
-             window.onload = (typeof window.onload != 'function') ?
-             loadChartbeat : function() { oldonload(); loadChartbeat(); };
-             })();
-    </script>
-    </body>
-</html>
+<center>
+  <script type="text/javascript">
+      $(function() {
+          startRoom('{{{ room_id }}}');
+      });
+  </script>
+  <div id="chess-board"></div>
+  <div class="button-bar">
+    <button id="sit-white" class="btn">Sit as White</button>
+    <button id="sit-black" class="btn">Sit as Black</button>
+    <button id="start-game" class="btn" disabled="disabled">Start Game</button>
+    <span id="ping-text">Ping: <span id="ping"></span> ms</span>
+  </div>
+</center>
