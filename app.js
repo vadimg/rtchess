@@ -217,6 +217,8 @@ io.sockets.on('connection', function(socket) {
             var side = SIDES[i];
             if(room.sides[side])
                 socket.emit('sideTaken', side);
+            if(room.starting[side])
+                socket.emit('startPressed', side);
         }
     });
     socket.on('disconnect', function() {
@@ -239,6 +241,7 @@ io.sockets.on('connection', function(socket) {
             var side = SIDES[i];
             if(room.sides[side] === socket) {
                 room.starting[side] = true;
+                room.broadcast('startPressed', side);
                 break;
             }
         }
