@@ -75,9 +75,8 @@ process.on('uncaughtException', function(err) {
 
 function Room(id) {
     this.id = id;
-    this.white = null;
-    this.black = null;
-    this.starting= {};
+    this.sides = {};
+    this.starting = {};
     this.watchers = [];
     var self = this;
 }
@@ -104,24 +103,24 @@ Room.prototype.init = function() {
     this.board.on('activatePiece', function(id) {
         for(var i=0, l = SIDES.length; i < l; ++i) {
             var side = SIDES[i];
-            if(self[side])
-                self[side].emit('activatePiece', id);
+            if(self.sides[side])
+                self.sides[side].emit('activatePiece', id);
         }
     });
     this.board.on('activateBoard', function() {
         console.log('board activate');
         for(var i=0, l = SIDES.length; i < l; ++i) {
             var side = SIDES[i];
-            if(self[side])
-                self[side].emit('activateBoard');
+            if(self.sides[side])
+                self.sides[side].emit('activateBoard');
         }
     });
     this.board.on('disabled', function() {
         console.log('board disable');
         for(var i=0, l = SIDES.length; i < l; ++i) {
             var side = SIDES[i];
-            if(self[side])
-                self[side].emit('disabled');
+            if(self.sides[side])
+                self.sides[side].emit('disabled');
         }
     });
 
@@ -140,13 +139,13 @@ Room.prototype.broadcast = function() {
 Room.prototype.setSide = function(side, socket) {
     for(var i=0, l = SIDES.length; i < l; ++i) {
         var s = SIDES[i];
-        if(this[s] === socket) {
-            this[s] = null;
+        if(this.sides[s] === socket) {
+            delete this.sides[s];
             delete this.starting[s];
             this.broadcast('sideFree', s);
         }
     }
-    this[side] = socket;
+    this.sides[side] = socket;
     this.broadcast('sideTaken', side);
 };
 
@@ -163,8 +162,8 @@ Room.prototype.remove = function(socket) {
 
     for(var i=0, l = SIDES.length; i < l; ++i) {
         var side = SIDES[i];
-        if(this[side] === socket) {
-            this[side] = null;
+        if(this.sides[side] === socket) {
+            delete this.sides[side];
             delete this.starting[side];
             this.broadcast('sideFree', side);
             console.log(side, ' disconnected');
@@ -214,7 +213,7 @@ io.sockets.on('connection', function(socket) {
 
         for(var i=0, l = SIDES.length; i < l; ++i) {
             var side = SIDES[i];
-            if(room[side])
+            if(room.sides[side])
                 socket.emit('sideTaken', side);
         }
     });
@@ -227,7 +226,7 @@ io.sockets.on('connection', function(socket) {
     socket.on('chooseSide', function(side) {
         if(!room)
             return;
-        if(!room[side]) {
+        if(!room.sides[side]) {
             mySide = side;
             room.setSide(side, socket);
             socket.emit('gotSide', side);
@@ -236,20 +235,21 @@ io.sockets.on('connection', function(socket) {
     socket.on('startGame', function() {
         for(var i=0, l = SIDES.length; i < l; ++i) {
             var side = SIDES[i];
-            if(room[side] === socket) {
+            if(room.sides[side] === socket) {
                 room.starting[side] = true;
                 break;
             }
         }
 
         // start game if everyone has clicked start
+        console.log(room.starting);
         if(_.size(room.starting) === SIDES.length) {
             for(var i=0, l = SIDES.length; i < l; ++i) {
                 var side = SIDES[i];
                 setTimeout(function() {
                     room.board.startGame();
                 }, config.START_WAIT_SECS*1000);
-                room[side].emit('starting', config.START_WAIT_SECS);
+                room.sides[side].emit('starting', config.START_WAIT_SECS);
             }
             room.init();
         }
@@ -271,10 +271,35 @@ app.get('/new_room', function(req, res) {
 
 app.get('/join_random', function(req, res) {
     var roomList = [];
+
+    var oneLeft = SIDES.length - 1;
+
+    // find rooms with 1 side left to fill and everyone else has hit start
     for(var id in rooms) {
-        roomList.push(rooms[id]);
+        var room = rooms[id];
+        if(_.size(room.sides) === oneLeft && _.size(room.starting) === oneLeft)
+            roomList.push(rooms[id]);
     }
 
+    // find rooms with 1 side left to fill
+    if(!roomList.length) {
+        for(var id in rooms) {
+            var room = rooms[id];
+            if(_.size(room.sides) === oneLeft)
+                roomList.push(rooms[id]);
+        }
+    }
+
+    // find rooms with someone in them
+    if(!roomList.length) {
+        for(var id in rooms) {
+            var room = rooms[id];
+            if(_.size(room.watchers) > 0 && _.size(room.sides) !== SIDES.length)
+                roomList.push(rooms[id]);
+        }
+    }
+
+    // create a new room
     if(!roomList.length) {
         return res.redirect('/new_room');
     }
