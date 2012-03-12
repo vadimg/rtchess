@@ -262,7 +262,9 @@ io.sockets.on('connection', function(socket) {
 });
 
 app.get('/', function(req, res) {
-    return res.render('index');
+    return res.render('index', {
+        title: 'Real-Time Chess'
+    });
 });
 
 app.get('/new_room', function(req, res) {
@@ -317,7 +319,7 @@ app.get('/r/:room_id', function(req, res) {
         rooms[room_id] = new Room(room_id);
     }
     return res.render('room', {
-        title: 'Room',
+        title: 'Real-Time Chess: Game',
         room_id: room_id
     });
 });
