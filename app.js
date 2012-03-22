@@ -102,13 +102,6 @@ Room.prototype.init = function() {
         self.starting = {};
     });
 
-    this.board.on('activatePiece', function(id) {
-        for(var i=0, l = SIDES.length; i < l; ++i) {
-            var side = SIDES[i];
-            if(self.sides[side])
-                self.sides[side].emit('activatePiece', id);
-        }
-    });
     this.board.on('activateBoard', function() {
         console.log('board activate');
         for(var i=0, l = SIDES.length; i < l; ++i) {
