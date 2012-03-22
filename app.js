@@ -19,6 +19,11 @@ var io = require('socket.io').listen(app);
 var production = process.env.NODE_ENV === 'production';
 var pubdir = path.join(application_root, 'static');
 
+// have to do this because express doesn't follow the standard
+// and uses the reserved static keyword as a property
+// TODO: this is stupid
+express.staticProvider = express['static'];
+
 app.configure(function(){
     var bundle = require('browserify')(__dirname + '/lib/client.js');
     app.use(bundle);
@@ -26,7 +31,7 @@ app.configure(function(){
 });
 
 app.configure('development', function() {
-    app.use(express.static(pubdir));
+    app.use(express.staticProvider(pubdir));
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
@@ -36,7 +41,7 @@ app.configure('production', function() {
 
     var oneYear = 31557600000;
     app.use(express.staticCache());
-    app.use(express.static(pubdir, { maxAge: oneYear }));
+    app.use(express.staticProvider(pubdir, { maxAge: oneYear }));
     app.use(express.errorHandler());
 });
 
@@ -230,8 +235,10 @@ io.sockets.on('connection', function(socket) {
         }
     });
     socket.on('startGame', function() {
-        for(var i=0, l = SIDES.length; i < l; ++i) {
-            var side = SIDES[i];
+        var i, l, side;
+
+        for(i=0, l = SIDES.length; i < l; ++i) {
+            side = SIDES[i];
             if(room.sides[side] === socket) {
                 room.starting[side] = true;
                 room.broadcast('startPressed', side);
@@ -239,14 +246,16 @@ io.sockets.on('connection', function(socket) {
             }
         }
 
+        function startGame() {
+            room.board.startGame();
+        }
+
         // start game if everyone has clicked start
         console.log(room.starting);
         if(_.size(room.starting) === SIDES.length) {
-            for(var i=0, l = SIDES.length; i < l; ++i) {
-                var side = SIDES[i];
-                setTimeout(function() {
-                    room.board.startGame();
-                }, config.START_WAIT_SECS*1000);
+            for(i=0, l = SIDES.length; i < l; ++i) {
+                side = SIDES[i];
+                setTimeout(startGame, config.START_WAIT_SECS*1000);
                 room.sides[side].emit('starting', config.START_WAIT_SECS);
             }
             room.init();
@@ -271,20 +280,21 @@ app.get('/new_room', function(req, res) {
 
 app.get('/join_random', function(req, res) {
     var roomList = [];
+    var id, room;
 
     var oneLeft = SIDES.length - 1;
 
     // find rooms with 1 side left to fill and everyone else has hit start
-    for(var id in rooms) {
-        var room = rooms[id];
+    for(id in rooms) {
+        room = rooms[id];
         if(_.size(room.sides) === oneLeft && _.size(room.starting) === oneLeft)
             roomList.push(rooms[id]);
     }
 
     // find rooms with 1 side left to fill
     if(!roomList.length) {
-        for(var id in rooms) {
-            var room = rooms[id];
+        for(id in rooms) {
+            room = rooms[id];
             if(_.size(room.sides) === oneLeft)
                 roomList.push(rooms[id]);
         }
@@ -292,8 +302,8 @@ app.get('/join_random', function(req, res) {
 
     // find rooms with someone in them
     if(!roomList.length) {
-        for(var id in rooms) {
-            var room = rooms[id];
+        for(id in rooms) {
+            room = rooms[id];
             if(_.size(room.watchers) > 0 && _.size(room.sides) !== SIDES.length)
                 roomList.push(rooms[id]);
         }
@@ -305,7 +315,7 @@ app.get('/join_random', function(req, res) {
     }
 
     var i = Math.floor(Math.random()*roomList.length);
-    var room = roomList[i];
+    room = roomList[i];
     return res.redirect('/r/' + room.id);
 });
 
