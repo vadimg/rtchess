@@ -20,6 +20,12 @@
     -o-user-select: none;
 }
 
+.opacity(@ratio) {
+    zoom: 1; // to trigger hasLayout, for IE
+    filter: e(%("alpha(opacity=%d)", @ratio*100)); // for IE
+    opacity: @ratio; // for modern browsers
+}
+
 #chess-board {
     border: @border-width solid #333;
     border-collapse: collapse;
@@ -80,14 +86,16 @@
 }
 
 .piece-selected {
-    background: rgba(51,102,255,0.5);
+    background: rgb(51,102,255);
+    .opacity(.5);
 }
 
 .timer {
     position: absolute;
     left: 0px;
     width: @size;
-    background: rgba(184,138,0,0.5);
+    background: rgb(184,138,0);
+    .opacity(.5);
 }
 
 .message {
