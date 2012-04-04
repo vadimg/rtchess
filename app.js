@@ -1,9 +1,9 @@
-var application_root = __dirname,
-    express = require('express'),
-    path = require('path'),
-    Seq = require('seq'),
-    EventEmitter = require('events').EventEmitter,
-    _ = require('underscore');
+var application_root = __dirname;
+var express = require('express');
+var path = require('path');
+var Seq = require('seq');
+var EventEmitter = require('events').EventEmitter;
+var _ = require('underscore');
 
 var Board = require('./lib/board');
 var config = require('./lib/config');
